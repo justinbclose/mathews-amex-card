@@ -48,7 +48,6 @@ p{margin:0}
 .hero::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.55) 47%,transparent 58%);transform:translateX(-70%)}
 @media (prefers-reduced-motion:no-preference){.hero::after{animation:sheen 7s var(--ease) 1.2s infinite}@keyframes sheen{0%,72%{transform:translateX(-70%)}100%{transform:translateX(70%)}}}
 .hero>*{position:relative}
-.hero::before{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;z-index:0;pointer-events:none;background:linear-gradient(90deg,#1F4FB0 0 20%,#22B1A4 20% 40%,#F2C230 40% 60%,#F28A5B 60% 80%,#E0559A 80% 100%);box-shadow:0 -1px 0 rgba(255,255,255,.55)}
 .hero-top{display:flex;justify-content:space-between;align-items:center}
 .chip{width:44px;height:33px;border-radius:7px;background:linear-gradient(135deg,#ead49a,#b99652 52%,#ecd9a4);box-shadow:inset 0 0 0 1px rgba(90,70,30,.35),0 1px 0 rgba(255,255,255,.6);position:relative}
 .chip::before{content:"";position:absolute;inset:8px 0;border-top:1px solid rgba(90,70,30,.4);border-bottom:1px solid rgba(90,70,30,.4)}
@@ -70,7 +69,7 @@ p{margin:0}
 .ring-fill[data-pct="0"]{stroke-opacity:0}
 .hero.paid{background:
     repeating-linear-gradient(0deg,rgba(255,255,255,.10) 0 1px,rgba(0,0,0,.03) 1px 2px,rgba(255,255,255,0) 2px 3px),
-    conic-gradient(from 210deg at 70% 30%,#d9e4ff,#fbd3e6,#ffdccc,#fff1b8,#c9f0e8,#d9e4ff),
+    linear-gradient(130deg,#e4ecff 0%,#d3f1ec 50%,#e4ecff 100%),
     linear-gradient(118deg,#f3f5f7,#c3cad2 40%,#eef1f4)}
 .hero.paid .ring-fill{stroke:#167A4E}
 @media (prefers-reduced-motion:no-preference){.hero.celebrate{animation:cheer .9s var(--ease)}@keyframes cheer{30%{transform:perspective(900px) rotateY(-8deg) scale(1.02)}70%{transform:perspective(900px) rotateY(5deg)}}}
@@ -160,7 +159,6 @@ textarea,.form input{width:100%;font:16px var(--body);padding:10px 12px;border:1
 .card h2{font-size:19px}
 .card ul,.card ol{margin:0;padding-left:18px;font-size:14px;display:flex;flex-direction:column;gap:4px}
 .card.brief{position:relative;overflow:hidden;background:linear-gradient(150deg,#0F2C6B,#1F4FB0 52%,#168C93);color:#F2F5FB;box-shadow:0 18px 36px -18px rgba(15,44,107,.7)}
-.card.brief::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,#1F4FB0 0 20%,#22B1A4 20% 40%,#F2C230 40% 60%,#F28A5B 60% 80%,#E0559A 80% 100%)}
 .card.brief .label{color:rgba(242,245,251,.7)}
 .card.brief h2{font-size:23px;line-height:1.15}
 .card.brief p{color:rgba(242,245,251,.9)}
@@ -178,7 +176,7 @@ textarea,.form input{width:100%;font:16px var(--body);padding:10px 12px;border:1
 .more[aria-expanded="true"]{color:var(--accent);background:var(--accent-soft)}
 .more[aria-expanded="true"] svg{transform:rotate(180deg)}
 .meter{height:8px;border-radius:4px;background:var(--line);overflow:hidden;margin-top:-6px}
-.meter i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,#1F4FB0,#22B1A4 55%,#F2C230);transition:width .5s var(--ease)}
+.meter i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,#1F4FB0,#22B1A4);transition:width .5s var(--ease)}
 .empty{text-align:center;color:var(--muted);padding:24px 0}
 .save{font:500 11px var(--mono);color:var(--muted);text-align:center;letter-spacing:.04em}
 
@@ -709,7 +707,6 @@ if(window.claude&&window.claude.use){
 .tour-dots{display:flex;gap:6px}
 .tour-dots i{width:7px;height:7px;border-radius:50%;background:var(--line)}
 .tour-dots i.on{background:var(--accent-2)}
-.tour-card::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,#1F4FB0 0 20%,#22B1A4 20% 40%,#F2C230 40% 60%,#F28A5B 60% 80%,#E0559A 80% 100%)}
 .tour-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px}
 .tour-skip{background:none;border:0;color:var(--muted);font:600 14px var(--body);min-height:44px;padding:0 4px;cursor:pointer}
 .tour-next{min-height:48px;padding:0 22px;border-radius:999px;border:0;background:var(--accent);color:var(--on-accent);font:700 15px var(--body);cursor:pointer}
