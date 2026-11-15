@@ -1,0 +1,628 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style></head><body><title>Shared Platinum Tracker</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<style id="pstyle">
+/* Layout: phone app shell. Countdown hero on top, one scrolling list per tab, fixed tab bar at the bottom. */
+:root{
+  --bg:#eceff2; --card:#fbfcfd; --line:#d7dce1; --fg:#1b2127; --muted:#5f6973;
+  --accent:#2f5d7c; --accent-soft:#dbe6ee; --ok:#2e7a54; --ok-soft:#d9eee2;
+  --hot:#b23a2c; --hot-soft:#f6dcd7; --soon:#a2581b; --soon-soft:#f5e5d5;
+  --display:"Bricolage Grotesque",system-ui,sans-serif; --body:"Figtree",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12161a; --card:#1b2126; --line:#2c343b; --fg:#e8ebee; --muted:#97a1aa;
+  --accent:#8db7d3; --accent-soft:#213039; --ok:#6cc497; --ok-soft:#1b3227;
+  --hot:#f08a7a; --hot-soft:#3d2320; --soon:#e5a46c; --soon-soft:#3a2a1d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12161a; --card:#1b2126; --line:#2c343b; --fg:#e8ebee; --muted:#97a1aa;
+  --accent:#8db7d3; --accent-soft:#213039; --ok:#6cc497; --ok-soft:#1b3227;
+  --hot:#f08a7a; --hot-soft:#3d2320; --soon:#e5a46c; --soon-soft:#3a2a1d; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+.app{max-width:520px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px calc(130px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:18px}
+h1,h2{font-family:var(--display);margin:0;text-wrap:balance}
+p{margin:0}
+.num{font-variant-numeric:tabular-nums}
+.label{font-size:11px;letter-spacing:.11em;text-transform:uppercase;font-weight:700;color:var(--muted)}
+
+.hero{--ink:#1f262c;position:relative;overflow:hidden;color:var(--ink);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:12px;min-height:210px;justify-content:space-between;
+  background:
+    repeating-linear-gradient(90deg,rgba(255,255,255,.07) 0 1px,rgba(0,0,0,.035) 1px 3px),
+    linear-gradient(135deg,#eef1f3 0%,#c4cbd1 22%,#f4f6f7 40%,#aab3ba 62%,#dfe4e7 80%,#b5bdc3 100%);
+  box-shadow:0 1px 0 rgba(255,255,255,.7) inset,0 -1px 0 rgba(0,0,0,.15) inset,0 10px 24px rgba(20,30,40,.18)}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.45) 45%,transparent 60%);pointer-events:none}
+.hero>*{position:relative;z-index:1}
+.hero-top{display:flex;justify-content:space-between;align-items:center}
+.switch{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;border-radius:14px;background:var(--card);border:1px solid var(--line)}
+.sw{min-height:44px;border:0;border-radius:10px;background:transparent;color:var(--muted);font:700 14px var(--body);cursor:pointer;padding:0 6px}
+.sw[aria-selected="true"]{background:var(--accent);color:var(--card)}
+.sw:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.hero.delta{--ink:#eef1f4;background:repeating-linear-gradient(90deg,rgba(255,255,255,.04) 0 1px,rgba(0,0,0,.05) 1px 3px),linear-gradient(135deg,#4b535b 0%,#2c3338 35%,#5a636b 55%,#252b30 80%,#3d454c 100%)}
+.hero.delta .hero-days,.hero.delta .hero-what{text-shadow:0 1px 0 rgba(0,0,0,.4)}
+.hero.delta .hero-bar{background:rgba(238,241,244,.2)}
+.hero.qs{--ink:#18232b;background:repeating-linear-gradient(90deg,rgba(255,255,255,.08) 0 1px,rgba(0,0,0,.03) 1px 3px),linear-gradient(135deg,#e3eaef 0%,#a9b9c4 25%,#eef3f6 45%,#93a6b3 68%,#cfd9df 100%)}
+.chip{width:42px;height:32px;border-radius:6px;background:linear-gradient(135deg,#e7cf8a,#b8954a 55%,#e9d59a);box-shadow:0 0 0 1px rgba(90,70,30,.35) inset;position:relative}
+.chip::before{content:"";position:absolute;inset:7px 0;border-top:1px solid rgba(90,70,30,.4);border-bottom:1px solid rgba(90,70,30,.4)}
+.chip::after{content:"";position:absolute;inset:0 14px;border-left:1px solid rgba(90,70,30,.4);border-right:1px solid rgba(90,70,30,.4)}
+.card-name{font:700 11px var(--body);letter-spacing:.22em;text-transform:uppercase;opacity:.7}
+.hero .label{color:inherit;opacity:.75}
+.hero .hero-bar{background:rgba(31,38,44,.15)}
+.hero .hero-bar i{background:var(--ink)}
+.hero .hero-days,.hero .hero-what{text-shadow:0 1px 0 rgba(255,255,255,.6)}
+@media (prefers-reduced-motion:no-preference){.hero::after{animation:sheen 6s ease-in-out 1s infinite}@keyframes sheen{0%,70%{transform:translateX(-60%)}100%{transform:translateX(60%)}}}
+.hero-main{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.hero-days{font-family:var(--display);font-weight:800;font-size:64px;line-height:.9}
+.hero-days small{font-size:18px;font-weight:600;margin-left:4px}
+.hero-what{text-align:right;font-weight:600;min-width:0}
+.hero-what span{display:block;font-weight:400;opacity:.85;font-size:13px}
+.hero-bar{height:6px;border-radius:3px;background:color-mix(in srgb,var(--card) 25%,transparent);overflow:hidden}
+.hero-bar i{display:block;height:100%;background:var(--card);border-radius:3px}
+.hero-foot{display:flex;justify-content:space-between;font-size:13px;opacity:.9;gap:8px;flex-wrap:wrap}
+
+.group{display:flex;flex-direction:column;gap:8px}
+.group-head{display:flex;justify-content:space-between;align-items:baseline;padding:0 2px}
+.group-head h2{font-size:17px}
+.group-head span{font-size:13px;color:var(--muted)}
+
+.item{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.item-row{display:grid;grid-template-columns:56px 1fr 44px;align-items:center;gap:12px;padding:10px 12px}
+.days{height:52px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--accent-soft);color:var(--accent)}
+.days b{font-family:var(--display);font-size:22px;line-height:1}
+.days small{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.days.hot{background:var(--hot-soft);color:var(--hot)}
+.days.soon{background:var(--soon-soft);color:var(--soon)}
+.days.ok{background:var(--ok-soft);color:var(--ok)}
+.info{min-width:0;background:none;border:0;padding:0;text-align:left;color:inherit;font:inherit;cursor:pointer}
+.info strong{display:block;font-size:15px;font-weight:700}
+.info span{display:block;font-size:13px;color:var(--muted)}
+.check{width:44px;height:44px;border-radius:50%;border:2px solid var(--line);background:transparent;cursor:pointer;display:grid;place-content:center;padding:0}
+.check svg{width:20px;height:20px;stroke:transparent;fill:none;stroke-width:3}
+.check[aria-pressed="true"]{background:var(--ok);border-color:var(--ok)}
+.check[aria-pressed="true"] svg{stroke:var(--card)}
+.item.done .info strong{color:var(--muted);text-decoration:line-through;text-decoration-thickness:1px}
+.detail{padding:0 14px 14px;display:flex;flex-direction:column;gap:8px;font-size:14px;border-top:1px solid var(--line);padding-top:12px}
+.detail .tip{color:var(--muted);font-size:13px}
+.strip{display:flex;gap:5px;flex-wrap:wrap}
+.strip button{font:600 11px var(--body);border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:7px;padding:5px 7px;min-width:38px;cursor:pointer}
+.strip button.on{background:var(--ok-soft);color:var(--ok);border-color:var(--ok)}
+.strip button.cur{border-color:var(--accent)}
+
+.perk-row{display:grid;grid-template-columns:1fr auto;column-gap:12px;padding:14px 16px;width:100%}
+.perk-row strong,.perk-row span{grid-column:1}
+.perk-row em{grid-column:2;grid-row:1/3;align-self:center;font-style:normal;font-size:22px;color:var(--accent);width:24px;text-align:center}
+.links{display:flex;flex-wrap:wrap;gap:8px;padding-top:4px}
+.links a{display:inline-flex;align-items:center;min-height:40px;padding:8px 14px;border-radius:10px;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:14px;text-decoration:none}
+.links a:first-child{background:var(--accent);color:var(--card)}
+.links a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.import ol{margin:0;padding-left:18px;font-size:14px;display:flex;flex-direction:column;gap:4px}
+.bigbtn{display:flex;align-items:center;justify-content:center;min-height:46px;border-radius:12px;background:var(--accent);color:var(--card);font:700 15px var(--body);border:0;cursor:pointer;width:100%;margin-top:6px}
+.bigbtn.ghost{background:var(--accent-soft);color:var(--accent)}
+label.bigbtn:focus-within,.bigbtn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+details{border-top:1px solid var(--line);padding-top:8px}
+summary{cursor:pointer;font-weight:600;color:var(--accent);padding:4px 0}
+textarea,.form input{width:100%;font:15px var(--body);padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg);margin-top:6px}
+.form{display:flex;flex-direction:column;gap:2px}
+.form label{font-size:13px;font-weight:600;color:var(--muted);margin-top:8px}
+.status{font-size:14px;font-weight:600;color:var(--accent);margin-top:6px}
+.linkbtn{background:none;border:0;padding:4px 0 0;color:var(--muted);font:600 12px var(--body);text-decoration:underline;cursor:pointer}
+.item.alerted{border:2px solid var(--hot)}
+.alert{display:grid;grid-template-columns:24px 1fr;gap:10px;padding:10px 12px;border-radius:10px;background:var(--hot-soft);color:var(--fg);font-size:13px}
+.alert strong{color:var(--hot);font-size:14px}
+.alert p{margin:2px 0 0}
+.alert a{color:var(--hot);font-weight:700;font-size:13px}
+.alert-when{font-weight:600}
+.alert-badge{width:24px;height:24px;border-radius:50%;background:var(--hot);color:var(--card);display:grid;place-content:center;font-weight:800}
+.news-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.refresh{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 16px;border-radius:999px;border:0;background:var(--accent);color:var(--card);font:700 14px var(--body);cursor:pointer}
+.refresh svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.refresh[disabled]{opacity:.75;cursor:default}
+@media (prefers-reduced-motion:no-preference){.refresh.spinning svg{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}}
+.updated{font-size:13px;color:var(--muted);margin-top:-6px}
+.updated span{font-size:12px}
+.news{padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.news h3{font-family:var(--display);font-size:17px;margin:0;text-wrap:balance}
+.news p{font-size:14px}
+.news .impact{background:var(--accent-soft);border-radius:10px;padding:8px 10px}
+.news-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.news-date{font-size:12px;color:var(--muted)}
+.pill{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}.pill.soon{background:var(--soon-soft);color:var(--soon)}.pill.hot{background:var(--hot-soft);color:var(--hot)}
+.pill.fresh{background:var(--accent);color:var(--card)}
+.brief{background:var(--accent-soft);border-color:transparent}
+.brief h2{font-size:19px}
+.plist{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.setup-item{display:grid;grid-template-columns:1fr 44px;gap:12px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.setup-item:last-child{border-bottom:0}
+.setup-item small{display:block;color:var(--muted);font-size:13px}
+.setup-item.done strong{color:var(--muted);text-decoration:line-through}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.card h2{font-size:16px}
+.card ul,.card ol{margin:0;padding-left:18px;font-size:14px;display:flex;flex-direction:column;gap:4px}
+.empty{text-align:center;color:var(--muted);padding:24px 0}
+.save{font-size:12px;color:var(--muted);text-align:center}
+
+.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding-bottom:max(22px,calc(env(safe-area-inset-bottom,0px) + 10px));box-shadow:0 -4px 16px rgba(20,30,40,.08);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);z-index:5}
+.tabs-in{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.tab{background:none;border:0;min-height:66px;padding:12px 4px 10px;font:700 13px var(--body);color:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;position:relative;border-radius:14px}
+.tab[aria-current="page"]{background:var(--accent-soft)}
+.tabs-in{padding:6px 8px 0;gap:4px}
+.tab svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tab[aria-current="page"]{color:var(--accent)}
+.tab .dot{position:absolute;top:6px;left:calc(50% + 8px);min-width:17px;height:17px;border-radius:9px;background:var(--hot);color:var(--card);font-size:10px;display:grid;place-content:center;padding:0 4px}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+</style>
+<script type="application/json" id="pstate">{"checks":{},"setup":{}}</script>
+<script type="application/json" id="pnews">{"brief": {"updated": "2026-11-15T06:10:00Z", "headline": "December 31 is the big deadline", "summary": "Q4 Resy ($100) and lululemon ($75), the July–December $300 hotel credit and every yearly credit reset January 1. Book any one-night Fine Hotels + Resorts stay before the 2-night rule starts January 1."}, "alerts": {"hotel": {"active": true, "title": "Rule change Jan 1: Fine Hotels + Resorts needs 2 nights", "text": "One-night FHR stays stop counting for the $300 credit. If a one-night stay is your plan for this half's $300, book it by Dec 31.", "when": "2027-01-01", "url": "https://upgradedpoints.com/news/amex-platinum-benefit-changes-2026/"}}, "news": [{"card": "plat", "tag": "tip", "date": "2026-11-05", "when": "2026-12-31", "title": "Big expiration day: December 31", "summary": "Q4 Resy ($100) and lululemon ($75), the July–December hotel credit ($300), and every yearly credit all reset on January 1.", "impact": "Check the Due tab and plan December around anything still open.", "added": "2026-11-15T06:10:00Z"}, {"card": "plat", "tag": "new", "date": "2026-11-02", "when": "2026-11-30", "title": "30% bonus on Membership Rewards to Virgin Atlantic", "summary": "Through November 30, Membership Rewards points move to Virgin Atlantic Flying Club with a 30% bonus, so 1,000 points become 1,300 miles.", "impact": "Only transfer if you have a specific award in mind; never transfer speculatively.", "source": "The Points Party", "url": "https://thepointsparty.com/articles/amex-virgin-atlantic-30-percent-transfer-bonus-november-2026", "added": "2026-11-15T06:10:00Z"}, {"card": "plat", "tag": "new", "date": "2026-10-22", "title": "New $250 Airbnb Experiences credit", "summary": "Book a prepaid Airbnb Luxe stay through Amex Travel and you unlock up to $250 back on Airbnb Experiences for the rest of that calendar year.", "impact": "Only worth it if you were already planning a Luxe rental. Link your Airbnb account to Amex first.", "source": "Frequent Miler", "url": "https://frequentmiler.com/amex-launches-new-airbnb-benefits-on-platinum-cards/", "added": "2026-11-15T06:10:00Z"}, {"card": "plat", "tag": "new", "date": "2026-10-22", "title": "Hotel credit is now a Lodging credit, Airbnb Luxe counts", "summary": "The $300 twice-a-year hotel credit now also covers prepaid Airbnb Luxe stays booked on Amex Travel, and Airbnb stays booked there earn 5X points.", "impact": "The July–December $300 has to be booked by Dec 31; the stay can be later.", "source": "Frequent Miler", "url": "https://frequentmiler.com/amex-launches-new-airbnb-benefits-on-platinum-cards/", "added": "2026-11-15T06:10:00Z"}, {"card": "plat", "tag": "changing", "date": "2026-10-22", "when": "2027-01-01", "title": "Fine Hotels + Resorts will need 2 nights for the credit", "summary": "Starting January 1, 2027, single-night FHR bookings no longer qualify for the $300 hotel credit.", "impact": "If a one-night FHR stay is your easiest way to use the credit, book it before December 31.", "source": "Upgraded Points", "url": "https://upgradedpoints.com/news/amex-platinum-benefit-changes-2026/", "added": "2026-11-15T06:10:00Z"}, {"card": "plat", "tag": "ending", "date": "2026-10-01", "when": "2026-10-01", "title": "Lufthansa lounge access ended", "summary": "Platinum no longer gets you into Lufthansa lounges. Centurion, Delta Sky Club, Priority Pass, Escape and Plaza Premium remain.", "impact": "Use Priority Pass at Lufthansa hubs.", "source": "The Points Party", "url": "https://thepointsparty.com/articles/amex-platinum-lufthansa-lounge-access-ends", "added": "2026-11-15T06:10:00Z"}]}</script>
+<div id="app" class="app"><p class="empty">Loading…</p></div>
+<nav class="tabs" id="tabs"></nav>
+<script id="pmain">
+(function(){
+var SRC_STYLE=document.getElementById('pstyle').textContent;
+var SRC_MAIN=document.getElementById('pmain').textContent;
+var state;
+try{state=JSON.parse(document.getElementById('pstate').textContent)}catch(e){state={checks:{},setup:{}}}
+state.checks=state.checks||{};state.setup=state.setup||{};
+var LS='plat-tracker-v1', tab='due', open={};
+try{var ls=JSON.parse(localStorage.getItem(LS)||'null');if(ls&&ls.t>(state.t||0)){state=ls;state.checks=state.checks||{};state.setup=state.setup||{}}}catch(e){}
+try{tab=localStorage.getItem(LS+'-tab')||'due'}catch(e){}
+if(tab==='offers')tab='news';
+if(['due','perks','news','setup'].indexOf(tab)<0)tab='due';
+var newsItems=null, brief=null, newsState='loading', lastSeen='';
+try{lastSeen=localStorage.getItem(LS+'-seen')||''}catch(e){}
+state.offers=Array.isArray(state.offers)?state.offers:[];
+
+var now=new Date(), Y=now.getFullYear(), M=now.getMonth();
+var TODAY=new Date(Y,M,now.getDate());
+var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var CREDITS=[
+ {id:'ent',g:'m',name:'Streaming credit',annual:300,per:25,how:'Enroll in the Amex app, then pay directly with Disney+, Hulu, ESPN, Paramount+, Peacock, YouTube Premium, YouTube TV, NYT or WSJ.',tip:'Pay the service directly. Billing through Apple, Google Play or another company does not count, and since Aug 1, 2026 Peacock bundles and add-ons do not count either (standalone Peacock still does).'},
+ {id:'uber',g:'m',name:'Uber Cash',annual:200,per:15,dec:35,how:'Add the Platinum to your Uber app. $15 lands on the 1st ($35 in December) for US rides or Uber Eats.',tip:'Expires at month-end. Spend it before the last day.'},
+ {id:'wmt',g:'m',name:'Walmart+',annual:155,per:12.95,how:'Pay for a monthly Walmart+ plan with the Platinum. Up to $12.95 plus tax back.',tip:'Monthly plan only, not annual.'},
+ {id:'resy',g:'q',name:'Resy dining',annual:400,per:100,how:'Enroll, then pay with the Platinum at any eligible US Resy restaurant. No Resy booking needed.',tip:'Can be split across several meals.'},
+ {id:'lulu',g:'q',name:'lululemon',annual:300,per:75,how:'Enroll, then buy at US lululemon stores or lululemon.com (no outlets).',tip:'Stack with any lululemon Amex Offer.'},
+ {id:'hotel',g:'h',name:'Hotel credit',annual:600,per:300,how:'Prepay a Fine Hotels + Resorts, Hotel Collection (2+ nights) or Airbnb Luxe (2+ nights) stay on AmexTravel.com with the Platinum.',tip:'Booking date counts, not stay date. From Jan 1, 2027, FHR also needs 2 nights.'},
+ {id:'air',g:'a',name:'Airline fee credit',annual:200,per:200,how:'Choose one US airline in the Amex app, then charge its bag fees, seats, in-flight food or lounge passes.',tip:'Airfare and upgrades do not count.'},
+ {id:'clear',g:'a',name:'CLEAR+',annual:219,per:219,how:'Enroll, then pay for an auto-renewing CLEAR+ membership with the Platinum.',tip:'Only worth it if you fly often.'},
+ {id:'uberone',g:'a',name:'Uber One',annual:120,per:120,how:'Pay for an auto-renewing Uber One membership with the Platinum.',tip:'Separate from monthly Uber Cash.'},
+ {id:'equinox',g:'a',name:'Equinox',annual:300,per:300,how:'Enroll, then pay for an Equinox club or the Equinox+ app with the Platinum.',tip:'Equinox+ is the easy option without a club.'},
+ {id:'oura',g:'a',name:'Oura Ring',annual:200,per:200,how:'Enroll, then buy a ring at ouraring.com with the Platinum.',tip:'Skip unless you want a ring this year.'},
+ {id:'airbnb',g:'a',name:'Airbnb Experiences',annual:250,per:250,how:'Unlocks after you prepay an Airbnb Luxe stay (2+ nights) on AmexTravel.com or the Amex Travel app, with your Airbnb account linked to Amex. Then buy Airbnb Experiences directly on Airbnb with the Platinum.',tip:'Only counts if you book a Luxe stay. Use it by Dec 31 of the year you booked; cancelling the stay can take it back. Regular Airbnb rentals do not unlock it.'}
+];
+var AMEX=['Enroll in Amex','https://www.americanexpress.com/'], CLAIM=['File a claim','https://www.americanexpress.com/en-us/benefits/protections/'], OCLAIM=['File a claim','https://www.americanexpress.com/onlineclaim'];
+var LINKS={
+ ent:[AMEX], uber:[['Open Uber','https://www.uber.com/']], wmt:[['Walmart+','https://www.walmart.com/plus']],
+ resy:[['Find Resy restaurants','https://resy.com/'],AMEX], lulu:[['Shop lululemon','https://shop.lululemon.com/'],AMEX],
+ hotel:[['Book on Amex Travel','https://www.amextravel.com/']],
+ air:[['Pick airline in Amex','https://www.americanexpress.com/']], clear:[['CLEAR','https://www.clearme.com/'],AMEX],
+ uberone:[['Open Uber','https://www.uber.com/']], equinox:[['Equinox','https://www.equinox.com/'],AMEX], oura:[['Oura','https://ouraring.com/'],AMEX],
+ airbnb:[['Book Luxe on Amex Travel','https://www.amextravel.com/'],['Airbnb Experiences','https://www.airbnb.com/experiences']],
+ 'p-bag':[OCLAIM], 'p-car':[['File a claim','https://www.americanexpress.com/protectionbenefits']], 'p-return':[OCLAIM], 'p-purchase':[OCLAIM], 'p-warranty':[OCLAIM],
+ 'p-lounge':[['Enroll in Priority Pass','https://www.americanexpress.com/']], 'p-ge':[['Apply (Trusted Traveler)','https://ttp.dhs.gov/']],
+ 'p-status':[['Enroll in Amex','https://www.americanexpress.com/'],['Hilton','https://www.hilton.com/'],['Marriott','https://www.marriott.com/']],
+ 'p-fhr':[['Book on Amex Travel','https://www.amextravel.com/']], 'p-resyaccess':[['Open Resy','https://resy.com/']]
+};
+var PHONES={'p-delay':'1-844-933-0648','p-cancel':'1-844-933-0648','p-bag':'1-800-228-6855','p-car':'1-800-338-1670','p-phone':'1-833-784-1467','p-return':'1-800-228-6855','p-purchase':'1-800-228-6855','p-warranty':'1-800-228-6855','p-assist':'1-800-333-2639'};
+function linksHTML(k){var L=LINKS[k],ph=PHONES[k];return (L?'<div class="links">'+L.map(function(l){return '<a href="'+l[1]+'" target="_blank" rel="noopener">'+esc(l[0])+' ↗</a>'}).join('')+'</div>':'')+(ph?'<p class="tip">'+(L&&L.length?'Or call':(k==='p-assist'?'Call':'Open a claim by calling'))+' <span class="num" style="user-select:all;color:var(--fg);font-weight:700">'+ph+'</span></p>':'')}
+var PGROUPS=[['trip','Travel protection','pay for the trip with the card'],['shop','Shopping protection','pay for the item with the card'],['air','Airport','show your card or app'],['stay','Hotels and status','enroll once']];
+var PERKS=[
+ {g:'trip',id:'delay',name:'Trip delay',sum:'Up to $500 per trip when delayed more than 6 hours',limits:['Meals, lodging and personal items while you wait','Covered reasons: severe weather, carrier equipment failure, lost or stolen passport, terrorism or hijacking','Up to 2 claims per 12 months; pays after other coverage (secondary)','Not covered if the cause was public or known before you left'],qualify:'Pay the entire round-trip fare with the Platinum.',tip:'Keep every receipt and the airline\u2019s delay notice.'},
+ {g:'trip',id:'cancel',name:'Trip cancellation and interruption',sum:'Up to $10,000 per trip, $20,000 per 12 months',limits:['Reimburses non-refundable prepaid travel, plus the cost to rejoin a trip or get home early','Covered reasons include sickness or injury, severe weather, jury duty, military orders, a home made unlivable and a doctor-ordered quarantine','Not covered: pre-existing conditions (60-day lookback), intentional acts, one-way trips','Pays after other coverage (secondary)'],qualify:'Pay the entire round-trip fare with the Platinum.',tip:'Keep the supplier\u2019s cancellation policy and proof of the reason.'},
+ {g:'trip',id:'bag',name:'Baggage insurance',sum:'Up to $3,000 carry-on, $2,000 checked, $3,000 total per trip',limits:['Lost, damaged or stolen bags on a plane, train, ship or bus','High-risk items (jewelry, sports gear, electronics) up to $1,000 combined','Covers you, a spouse or domestic partner, and dependent kids under 23','Not covered: food, tickets, travel documents, credit cards; pays after other coverage (secondary)'],qualify:'Pay the entire fare with the Platinum.',tip:'Report it to the airline at the airport first.'},
+ {g:'trip',id:'car',name:'Rental car damage',sum:'Up to $75,000 for damage or theft (secondary)',limits:['Covers the first 30 days of each rental','Also accident coverage up to $200,000 for you and personal belongings up to $1,000 per person','Not available in Australia, Italy or New Zealand, or for peer-to-peer car sharing','Pays after your own insurance; no liability coverage'],qualify:'Reserve and pay for the entire rental with the Platinum and decline the counter\u2019s collision damage waiver.',tip:'Want it to pay first? Enroll in Premium Car Rental Protection: one flat fee per rental for primary coverage.'},
+ {g:'trip',id:'assist',name:'Premium Global Assist',sum:'24/7 help line when you are 100+ miles from home',limits:['Coordinates medical, legal and financial emergencies','Medical and legal referrals, passport replacement, cash wires','You may pay for third-party services it arranges'],qualify:'Being a cardmember traveling 100+ miles from home.',tip:'Save both numbers in your contacts: 1-800-333-2639 in the US, 1-715-343-7977 from abroad.'},
+ {g:'shop',id:'phone',name:'Cell phone protection',sum:'Up to $800 per claim if your phone is stolen or damaged',limits:['$50 deductible per claim, up to 2 claims per 12 months','Phones on your wireless bill, including cracked screens','Not covered: lost phones, cosmetic damage, accessories, prepaid, rented or borrowed phones','Pays after other insurance (excess)'],qualify:'Pay your monthly wireless bill with the Platinum. The prior month\u2019s bill must be on the card.',tip:'Move your phone bill to the card so you stay covered.'},
+ {g:'shop',id:'return',name:'Return protection',sum:'Up to $300 per item if a store won\u2019t take it back',limits:['Within 90 days of purchase','Up to $1,000 per calendar year','US purchases only; shipping not refunded','Not covered: consumables (food, perfume, batteries), jewelry, motorized items'],qualify:'Pay for the item with the Platinum.',tip:'Try the store first. If they refuse, file with Amex.'},
+ {g:'shop',id:'purchase',name:'Purchase protection',sum:'Up to $10,000 per item if stolen, damaged or lost',limits:['Within 90 days of purchase','Up to $50,000 per calendar year; $500 per natural disaster event','Not covered: consumables, shipping, downloads, motorized items','Pays after other coverage (secondary)'],qualify:'Pay for the item with the Platinum. No enrollment.',tip:'Keep the receipt and get a police report for theft.'},
+ {g:'shop',id:'warranty',name:'Extended warranty',sum:'Adds up to 1 extra year to manufacturer warranties',limits:['Warranties of 5 years or less, US purchases','Up to $10,000 per item, $50,000 per calendar year','Not covered: consumables, natural disaster damage, motorized items'],qualify:'Pay for the item with the Platinum.',tip:'Save receipts for electronics and appliances somewhere you can find them.'},
+ {g:'air',id:'lounge',name:'Airport lounges',sum:'1,550+ lounges worldwide',limits:['Centurion Lounges: entry within 5 hours of your flight','Delta Sky Club: 10 visits a year on Delta flights (no Basic Economy)','Priority Pass, Plaza Premium and Escape Lounges'],qualify:'Show your Platinum and same-day boarding pass. Priority Pass needs enrollment.',tip:'Use the Amex app’s lounge finder before you fly.'},
+ {g:'air',id:'ge',name:'Global Entry / TSA PreCheck',sum:'$120 Global Entry or $85 PreCheck, every 4 years',limits:['Global Entry includes PreCheck','Credit posts after you pay the application fee'],qualify:'Pay the application fee with the Platinum.',tip:'Global Entry is the better pick.'},
+ {g:'stay',id:'status',name:'Hotel elite status',sum:'Hilton Gold, Marriott Gold, Leaders Club Sterling',limits:['Hilton Gold: daily food credit at US hotels, 80% bonus points','Marriott Gold: upgrade and 2 p.m. checkout when available','Leading Hotels: Sterling member perks'],qualify:'Enroll each one in the Amex app, then add your hotel number to bookings.',tip:'See the Setup tab.'},
+ {g:'stay',id:'fhr',name:'Fine Hotels + Resorts perks',sum:'Extra perks on every FHR booking',limits:['Breakfast for two daily','Guaranteed 4 p.m. checkout, noon check-in when available','Room upgrade when available and a ~$100 property credit'],qualify:'Book through Amex Travel with the Platinum.',tip:'Pairs with your $300 hotel credit.'},
+ {g:'stay',id:'resyaccess',name:'Resy dining access',sum:'Hard-to-get reservations held for Platinum members',limits:['Some tables in the Resy app are held for eligible Amex cardmembers','Platinum Nights by Resy special dining events','Separate from the $100 quarterly Resy credit'],qualify:'Add your Platinum to the Resy app.',tip:'Worth checking before a special dinner.'},
+ {g:'stay',id:'points',name:'5X points',sum:'On flights and prepaid Amex Travel hotels',limits:['5X on flights booked direct with the airline or on Amex Travel','5X on prepaid hotels and eligible Airbnb stays on Amex Travel','1X on everything else'],qualify:'Automatic.',tip:'Use a different card for groceries and gas.'}
+];
+var alerts={};
+function alertHTML(k){
+  var a=alerts[k];if(!a)return '';
+  var d=pDate(a.when), dl=d?Math.round((d-TODAY)/86400000):null;
+  return '<div class="alert" role="note"><span class="alert-badge">!</span><div><strong>'+esc(a.title||'Heads up')+'</strong>'+
+    (a.text?'<p>'+esc(a.text)+'</p>':'')+
+    (d?'<p class="alert-when">'+(dl>0?'Starts '+fmtDate(d)+', '+d.getFullYear()+' · in '+dl+' day'+(dl===1?'':'s'):'In effect since '+fmtDate(d)+', '+d.getFullYear())+'</p>':'')+
+    (a.url&&/^https:\/\//.test(a.url)?'<a href="'+esc(a.url)+'" target="_blank" rel="noopener">Source ↗</a>':'')+'</div></div>';
+}
+function perkHTML(p){
+  var k='p-'+p.id, isOpen=open[k];
+  var s='<div class="item'+(alerts[k]?' alerted':'')+'"><button type="button" class="info perk-row" data-open="'+k+'" aria-expanded="'+(isOpen?'true':'false')+'"><strong>'+esc(p.name)+'</strong><span>'+esc(p.sum)+'</span><em aria-hidden="true">'+(isOpen?'−':'+')+'</em></button>';
+  if(isOpen)s+='<div class="detail">'+alertHTML(k)+'<ul class="plist">'+p.limits.map(function(l){return '<li>'+esc(l)+'</li>'}).join('')+'</ul><p><strong>How to get it:</strong> '+esc(p.qualify)+'</p><p class="tip">'+esc(p.tip)+'</p>'+linksHTML(k)+'</div>';
+  return s+'</div>';
+}
+var SETUP=[
+ ['resy','Enroll in Resy credit','Amex app → Benefits'],
+ ['lulu','Enroll in lululemon credit','Amex app → Benefits'],
+ ['ent','Enroll in streaming credit','Then move a streaming bill to the card'],
+ ['uber','Add Platinum to Uber','Uber app → Wallet'],
+ ['air','Pick your airline','Amex app → Benefits → Airline Fee Credit'],
+ ['hilton','Enroll in Hilton Gold','Amex app → Benefits'],
+ ['marriott','Enroll in Marriott Gold','Amex app → Benefits'],
+ ['lhw','Enroll in Leaders Club Sterling','Amex app → Benefits'],
+ ['car','Enroll in rental car status','Amex app → Benefits'],
+ ['pp','Enroll in Priority Pass','Add the digital card to your phone'],
+ ['clear','Enroll in CLEAR+','Optional'],
+ ['wmt','Put Walmart+ monthly on the card','Optional'],
+ ['ge','Apply for Global Entry','Pay with the Platinum'],
+ ['airbnb','Link Airbnb to Amex','Only needed for the Airbnb Luxe and Experiences credits']
+];
+
+// ---- Other cards ----
+var D_CREDITS=[
+ {id:'d-resy',g:'m',name:'Resy dining (Delta)',annual:240,per:20,how:'Enroll in the Amex app, then pay with the Delta Reserve at eligible US Resy restaurants.',tip:'Separate from the Platinum’s $100 quarterly Resy credit, so you can use both.'},
+ {id:'d-ride',g:'m',name:'Rideshare',annual:120,per:10,how:'Enroll in the Amex app, then pay for US rides with select rideshare providers using the Delta Reserve.',tip:'Expires at month-end and does not roll over. The Amex app lists which providers count.'},
+ {id:'d-stays',g:'a',name:'Delta Stays',annual:200,per:200,how:'Enroll, then prepay a hotel or vacation rental through Delta Stays on delta.com with the Delta Reserve.',tip:'Has to be a prepaid Delta Stays booking.'},
+ {id:'d-comp',g:'x',name:'Companion Certificate',annual:0,per:0,label:'Free companion round trip',how:'Issued each year after your card renews. Book a round trip for a companion in Main, Comfort+ or First within the US, Mexico, the Caribbean or Central America. You pay only taxes and fees ($22–$250).',tip:'Find it in the Fly Delta app under My Wallet and enter its expiration date below so the countdown is right. Delta Basic fares do not qualify.'}
+];
+var D_PGROUPS=[['dair','Airport and flying','fly Delta'],['trip','Travel protection','pay for the trip with the card'],['shop','Shopping protection','pay with the card'],['dstat','Status and miles','automatic']];
+var D_PERKS=[
+ {g:'dair',id:'d-sky',name:'Delta Sky Club',sum:'15 visits per Medallion Year, unlimited after $75,000 spend',limits:['Same-day Delta flight required','Unlimited visits after $75,000 on the card in a calendar year','4 one-time guest passes per Medallion Year'],qualify:'Show the Delta Reserve and a same-day Delta boarding pass.',tip:'The Fly Delta app shows how many visits you have left.'},
+ {g:'dair',id:'d-centurion',name:'Centurion and Escape Lounges',sum:'When your Delta ticket was bought with this card',limits:['Centurion Lounge and Sidecar access','Escape Lounges'],qualify:'Buy the Delta flight with the Delta Reserve.',tip:'Your Platinum also gets you into Centurion Lounges within 5 hours of your flight.'},
+ {g:'dair',id:'d-bags',name:'Free checked bags',sum:'First bag free worldwide, second free on US domestic flights',limits:['Delta-operated flights','Second free bag added June 2026'],qualify:'Have your card-linked SkyMiles number on the reservation.',tip:'Check the bag count in the Fly Delta app before you pay at the counter.'},
+ {g:'dair',id:'d-fly',name:'Upgrades and in-flight',sum:'Upgrade priority, 20% back in flight, 15% off award flights',limits:['Upgrade priority over others with the same Medallion level and fare','20% back on in-flight food, drinks and headsets','15% fewer miles on Delta award flights booked on delta.com'],qualify:'Automatic with your linked SkyMiles account.',tip:'Pay for in-flight purchases with this card to get the 20% back.'},
+ {g:'dair',id:'d-ge',name:'Global Entry / TSA PreCheck',sum:'Same $120 credit as your Platinum',limits:['Global Entry $120 every 4 years, PreCheck up to $85','You only need one card to cover it'],qualify:'Pay the application fee with the Delta Reserve.',tip:'Use whichever card has not covered it yet.'},
+ {g:'trip',id:'d-delay',name:'Trip delay',sum:'Up to $500 if your flight is delayed 6+ hours',limits:['Meals, hotel and essentials while you wait'],qualify:'Pay for the round trip with the Delta Reserve.',tip:'Keep every receipt and the airline’s delay notice.'},
+ {g:'trip',id:'d-cancel',name:'Trip cancellation and interruption',sum:'Up to $10,000 per trip, $20,000 per year',limits:['Covers non-refundable prepaid travel for covered reasons like illness or severe weather'],qualify:'Pay for the round trip with the Delta Reserve.',tip:'File within 60 days.'},
+ {g:'trip',id:'d-bag',name:'Baggage insurance',sum:'Up to $1,250 carry-on, $500 checked',limits:['Lost, damaged or stolen bags','Delayed bags not covered'],qualify:'Pay the fare with the Delta Reserve.',tip:'Report it to Delta at the airport first.'},
+ {g:'trip',id:'d-car',name:'Rental car damage',sum:'Secondary coverage for damage or theft',limits:['Pays after your own auto insurance'],qualify:'Pay for the whole rental with the card and decline the counter’s collision coverage.',tip:'Your Platinum has the same type of coverage.'},
+ {g:'shop',id:'d-return',name:'Return protection',sum:'Up to $300 per item if a store won’t take it back',limits:['Within 90 days','Up to $1,000 per year'],qualify:'Pay with the Delta Reserve.',tip:'Try the store first.'},
+ {g:'shop',id:'d-purchase',name:'Purchase protection',sum:'Up to $10,000 per item if stolen or damaged',limits:['Within 90 days','Up to $50,000 per year'],qualify:'Pay with the Delta Reserve.',tip:'Keep the receipt.'},
+ {g:'shop',id:'d-warranty',name:'Extended warranty',sum:'Adds 1 year to manufacturer warranties',limits:['Warranties of 5 years or less'],qualify:'Pay with the Delta Reserve.',tip:'Save receipts for electronics.'},
+ {g:'dstat',id:'d-mqd',name:'MQD Headstart and Boost',sum:'$2,500 MQDs every year, plus $1 MQD per $10 spent',limits:['Headstart: $2,500 MQDs deposited each Medallion Qualification Year','Boost: $1 MQD for every $10 of purchases'],qualify:'Automatic once the card is linked to your SkyMiles account.',tip:'Spending here counts toward Medallion status.'},
+ {g:'dstat',id:'d-earn',name:'Miles earning',sum:'3X on Delta, 1X on everything else',limits:['3X miles on purchases made directly with Delta','1X on other purchases','No foreign transaction fees'],qualify:'Automatic.',tip:'Your Platinum earns 5X on flights. Use the Reserve on Delta when status matters more than points.'}
+];
+var D_SETUP=[
+ ['d-link','Link your SkyMiles number to the card','Needed for bags, MQDs and Sky Club'],
+ ['d-resy','Enroll in the Delta Resy credit','Amex app → Delta Reserve → Benefits'],
+ ['d-ride','Enroll in the rideshare credit','Amex app → Delta Reserve → Benefits'],
+ ['d-stays','Enroll in the Delta Stays credit','Amex app → Delta Reserve → Benefits'],
+ ['d-comp','Enter your Companion Certificate expiry','Fly Delta app → My Wallet, then the Due tab']
+];
+var Q_PGROUPS=[['qearn','Cash back','automatic'],['qprot','Protections','pay with the card'],['qextra','Extras','in the Capital One app']];
+var Q_PERKS=[
+ {g:'qearn',id:'q-earn',name:'1.5% cash back on everything',sum:'Unlimited, plus 5% on Capital One Travel',limits:['1.5% on every purchase, no categories or caps','5% on hotels, vacation rentals and rental cars booked through Capital One Travel','5% on Capital One Entertainment tickets','No annual fee and no foreign transaction fees'],qualify:'Automatic.',tip:'Your Amex cards earn 1X on everyday spending; this earns 1.5%.'},
+ {g:'qearn',id:'q-redeem',name:'Redeem your cash back',sum:'Any amount, never expires',limits:['No minimum to redeem','Statement credit, check, gift cards, Amazon or PayPal','Lasts as long as the account is open'],qualify:'Capital One app → Rewards.',tip:'Set it to redeem automatically so it never piles up.'},
+ {g:'qprot',id:'q-warranty',name:'Extended warranty',sum:'Extra warranty on eligible purchases',limits:['Exact length depends on your card version (Visa or Mastercard)'],qualify:'Pay with the Quicksilver.',tip:'Your Guide to Benefits has the exact terms.'},
+ {g:'qprot',id:'q-price',name:'Price protection',sum:'Refund if the price drops within 120 days (some versions)',limits:['Up to $250 per claim, 4 claims a year, on versions that have it'],qualify:'Pay with the Quicksilver.',tip:'Not every Quicksilver version has this. Check your Guide to Benefits before counting on it.'},
+ {g:'qprot',id:'q-travel',name:'Travel and rental car coverage',sum:'Travel accident insurance and a rental car damage waiver',limits:['Travel accident coverage when the full fare is on the card','Rental car damage waiver is secondary to your own insurance','Coverage varies by card version'],qualify:'Pay the full fare or rental with the Quicksilver.',tip:'For trips, your Platinum or Delta Reserve has stronger coverage.'},
+ {g:'qextra',id:'q-hertz',name:'Hertz Five Star status',sum:'Free upgrade when available, skip the counter',limits:['Upgrade when available','Skip the counter at select locations'],qualify:'Enroll through Capital One’s benefits page.',tip:'Handy if you rent from Hertz.'},
+ {g:'qextra',id:'q-ent',name:'Capital One Entertainment and Shopping',sum:'Ticket presales and a free coupon finder',limits:['5% back on Capital One Entertainment tickets','Capital One Shopping browser extension finds coupon codes'],qualify:'Sign in with your Capital One account.',tip:'Check it before buying concert or game tickets.'},
+ {g:'qextra',id:'q-safe',name:'Security',sum:'$0 fraud liability, card lock and alerts',limits:['$0 fraud liability','Lock the card in the app if it goes missing','Purchase and security alerts'],qualify:'Capital One app.',tip:'Turn on purchase alerts.'}
+];
+var Q_SETUP=[
+ ['q-autopay','Turn on AutoPay','Capital One app → Payments'],
+ ['q-alerts','Turn on purchase alerts','Capital One app → Profile → Alerts'],
+ ['q-redeem','Set cash back to auto-redeem','Capital One app → Rewards'],
+ ['q-benefits','Check your Guide to Benefits','Shows which protections your version has']
+];
+var CO=['Open Capital One','https://www.capitalone.com/'], COB=['See your card benefits','https://www.capitalone.com/credit-cards/benefits/'];
+var DL=['Open Delta','https://www.delta.com/'];
+var MORELINKS={
+ 'd-resy':[['Find Resy restaurants','https://resy.com/'],AMEX],'d-ride':[AMEX],'d-stays':[DL,AMEX],'d-comp':[DL],
+ 'p-d-sky':[DL],'p-d-centurion':[DL],'p-d-bags':[DL],'p-d-fly':[DL],'p-d-ge':[['Apply (Trusted Traveler)','https://ttp.dhs.gov/']],
+ 'p-d-delay':[CLAIM],'p-d-cancel':[CLAIM],'p-d-bag':[CLAIM],'p-d-car':[CLAIM],'p-d-return':[CLAIM],'p-d-purchase':[CLAIM],'p-d-warranty':[CLAIM],
+ 'p-q-earn':[['Capital One Travel','https://travel.capitalone.com/']],'p-q-redeem':[CO],'p-q-warranty':[COB],'p-q-price':[COB],'p-q-travel':[COB],'p-q-hertz':[COB],
+ 'p-q-ent':[['Capital One Entertainment','https://entertainment.capitalone.com/']],'p-q-safe':[CO]
+};
+var MOREPHONES={'p-d-delay':'844-933-0648','p-d-cancel':'844-933-0648','p-d-bag':'800-228-6855','p-d-car':'800-338-1670'};
+var AMEXCLAIM='<div class="card"><h2>Filing a claim</h2><ul><li>Fastest: the File a claim button on any protection above (log in, pick the benefit, upload receipts)</li><li>Trip delay, cancellation, interruption: 844-933-0648</li><li>Baggage: 800-228-6855</li><li>Car rental: 800-338-1670</li><li>Keep receipts, boarding passes and photos at the time it happens</li></ul></div>';
+var PLATCLAIM='<div class="card"><h2>Filing a claim</h2><ul><li>Online (baggage, return, purchase, warranty): americanexpress.com/onlineclaim or 1-800-228-6855</li><li>Car rental: americanexpress.com/protectionbenefits or 1-800-338-1670</li><li>Trip delay, cancellation, interruption: call 1-844-933-0648</li><li>Cell phone: call 1-833-784-1467</li><li>Global Assist: 1-800-333-2639 (abroad 1-715-343-7977)</li><li>Keep receipts, boarding passes and photos at the time it happens</li></ul></div>';
+var CARDS={
+ plat:{name:'Platinum',full:'Amex Platinum',tag:'Platinum Tracker',fee:895,news:'Amex Platinum',credits:CREDITS,pgroups:PGROUPS,perks:PERKS,setup:SETUP,
+  use:['Flights booked direct or on Amex Travel (5X), which also turns on trip coverage','Prepaid hotels on Amex Travel (5X)','Resy restaurants, for the $100 quarterly credit','Your phone bill, for cell phone protection'],
+  claim:PLATCLAIM,foot:'Protections match your Platinum Summary of Additional Benefits (Nov 2026). Full terms at americanexpress.com/benefitsguide.'},
+ delta:{name:'Delta Reserve',full:'Delta SkyMiles Reserve',tag:'Delta Reserve',fee:650,news:'Delta Reserve',credits:D_CREDITS,pgroups:D_PGROUPS,perks:D_PERKS,setup:D_SETUP,
+  use:['Delta flights when you want Medallion status (3X plus MQD Boost) or Centurion access through this card','Everyday spending if you’re working toward $75,000 for unlimited Sky Club','A second Resy meal each month for the $20 credit'],
+  claim:AMEXCLAIM,foot:'Delta Reserve terms as of Nov 2026. Check the Amex app for current details.'},
+ qs:{name:'Quicksilver',full:'Capital One Quicksilver',tag:'Quicksilver',fee:0,news:'Capital One Quicksilver',credits:[],pgroups:Q_PGROUPS,perks:Q_PERKS,setup:Q_SETUP,
+  use:['Everyday purchases with no bonus category (1.5% beats 1X on your Amex cards)','Places that don’t take Amex','Hotels and rental cars booked on Capital One Travel (5%)'],
+  claim:'<div class="card"><h2>Filing a claim</h2><ul><li>Call the number on the back of your card or start it in the Capital One app</li><li>Protections are run by Visa or Mastercard, depending on your card</li><li>Keep receipts and photos at the time it happens</li></ul></div>',
+  foot:'Quicksilver protections vary by card version. Confirm in your Guide to Benefits.'}
+};
+var CARD='plat';
+function setCard(id){if(!CARDS[id])id='plat';CARD=id;var c=CARDS[id];CREDITS=c.credits;PGROUPS=c.pgroups;PERKS=c.perks;SETUP=c.setup;MAXV=CREDITS.reduce(function(s,x){return s+x.annual},0)}
+Object.keys(MORELINKS).forEach(function(k){LINKS[k]=MORELINKS[k]});Object.keys(MOREPHONES).forEach(function(k){PHONES[k]=MOREPHONES[k]});
+state.dates=state.dates||{};
+function switcherHTML(){return '';return '<div class="switch" role="tablist" aria-label="Choose a card">'+['plat','delta','qs'].map(function(k){return '<button type="button" role="tab" class="sw sw-'+k+'" data-card="'+k+'" aria-selected="'+(CARD===k)+'">'+CARDS[k].name+'</button>'}).join('')+'</div>'}
+
+function pkey(c,i){return c.g==='x'?'x-'+(state.dates[c.id]||'none'):c.g==='m'?Y+'-m'+i:c.g==='q'?Y+'-q'+i:c.g==='h'?Y+'-h'+i:Y+'-y'}
+function cur(c){return c.g==='m'?M:c.g==='q'?Math.floor(M/3):c.g==='h'?Math.floor(M/6):0}
+function hasEnd(c){return c.g!=='x'||!!pDate(state.dates[c.id])}
+function periods(c){
+  if(c.g==='x')return [{i:0,label:'',amt:c.per}];
+  if(c.g==='m')return MON.map(function(m,i){return {i:i,label:m,amt:(i===11&&c.dec)?c.dec:c.per}});
+  if(c.g==='q')return [0,1,2,3].map(function(i){return {i:i,label:'Q'+(i+1),amt:c.per}});
+  if(c.g==='h')return [{i:0,label:'Jan–Jun',amt:c.per},{i:1,label:'Jul–Dec',amt:c.per}];
+  return [{i:0,label:String(Y),amt:c.per}];
+}
+function endOf(c){var i=cur(c);if(c.g==='x')return pDate(state.dates[c.id]);return c.g==='m'?new Date(Y,M+1,0):c.g==='q'?new Date(Y,(i+1)*3,0):c.g==='h'?new Date(Y,(i+1)*6,0):new Date(Y,11,31)}
+function days(c){if(!hasEnd(c))return 9999;return Math.max(0,Math.round((endOf(c)-TODAY)/86400000))}
+function on(c,i){return !!(state.checks[c.id]&&state.checks[c.id][pkey(c,i)])}
+function amtNow(c){return periods(c)[cur(c)].amt}
+function money(n){return '$'+(n%1?n.toFixed(2):n.toLocaleString('en-US'))}
+function esc(s){return String(s).replace(/[&<>"]/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]})}
+function fmtDate(d){return MON[d.getMonth()]+' '+d.getDate()}
+var CAD={m:'every month',q:'every quarter',h:'every 6 months',a:'once a year',x:'once a year after your card renews'};
+var MAXV=CREDITS.reduce(function(s,c){return s+c.annual},0);
+function claimed(){var t=0;CREDITS.forEach(function(c){periods(c).forEach(function(p){if(on(c,p.i))t+=p.amt})});return t}
+function urg(d){return d<=7?'hot':d<=31?'soon':''}
+var CHECK='<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+
+function itemHTML(c){
+  var ci=cur(c), done=on(c,ci), d=days(c), ps=periods(c), isOpen=open[c.id];
+  var cls=done?'ok':urg(d);
+  h='<div class="item'+(done?' done':'')+(alerts[c.id]?' alerted':'')+'"><div class="item-row">'+
+    '<div class="days '+(hasEnd(c)?cls:(done?'ok':''))+'">'+(done?'<b>✓</b><small>used</small>':hasEnd(c)?'<b class="num">'+d+'</b><small>day'+(d===1?'':'s')+'</small>':'<b>?</b><small>set date</small>')+'</div>'+
+    '<button type="button" class="info" data-open="'+c.id+'" aria-expanded="'+(isOpen?'true':'false')+'"><strong>'+esc(c.name)+'</strong><span class="num">'+(c.label?esc(c.label):money(amtNow(c)))+' · '+(!hasEnd(c)?'tap to add the expiration date':done?'resets after '+fmtDate(endOf(c)):'use by '+fmtDate(endOf(c)))+'</span></button>'+
+    '<button type="button" class="check" data-c="'+c.id+'" data-i="'+ci+'" aria-pressed="'+done+'" aria-label="Mark '+esc(c.name)+' used">'+CHECK+'</button></div>';
+  if(isOpen){
+    h+='<div class="detail">'+alertHTML(c.id)+'<p>'+esc(c.how)+'</p><p class="tip">'+esc(c.tip)+(c.annual?' Worth '+money(c.annual)+' a year,':' Comes')+' '+(c.annual?'resets ':'')+CAD[c.g]+'.</p>'+
+      (c.g==='x'?'<div class="form"><label for="dt-'+c.id+'">Expiration date</label><input type="date" id="dt-'+c.id+'" value="'+esc(state.dates[c.id]||'')+'"><button type="button" class="bigbtn" data-savedate="'+c.id+'">Save date</button></div>':'')+
+      (ps.length>1?'<div class="strip">'+ps.map(function(p){return '<button type="button" data-c="'+c.id+'" data-i="'+p.i+'" class="'+(on(c,p.i)?'on ':'')+(p.i===ci?'cur':'')+'" aria-pressed="'+on(c,p.i)+'">'+p.label+'</button>'}).join('')+'</div>':'')+linksHTML(c.id)+
+      '</div>';
+  }
+  return h+'</div>';
+}
+var h;
+function group(title,sub,list){return list.length?'<div class="group"><div class="group-head"><h2>'+title+'</h2><span>'+sub+'</span></div>'+list.map(itemHTML).join('')+'</div>':''}
+
+function render(){
+  var pending=CREDITS.filter(function(c){return !on(c,cur(c))}).sort(function(a,b){return days(a)-days(b)||b.per-a.per});
+  var doneNow=CREDITS.filter(function(c){return on(c,cur(c))});
+  var out=switcherHTML(), CD=CARDS[CARD];
+  if(tab==='due'&&!CREDITS.length){
+    out+='<div class="hero '+CARD+'"><div class="hero-top"><span class="chip" aria-hidden="true"></span><span class="card-name">'+esc(CD.tag)+'</span></div>'+
+      '<span class="label">No credits to track</span><div class="hero-main"><div class="hero-days num">1.5%<small>back</small></div><div class="hero-what">On everything<span>5% on Capital One Travel hotels and rental cars</span></div></div>'+
+      '<div class="hero-foot"><span>Cash back never expires</span><span class="num">fee $0</span></div></div>';
+    out+='<div class="card"><h2>Use the Quicksilver for</h2><ul>'+CD.use.map(function(u){return '<li>'+esc(u)+'</li>'}).join('')+'</ul></div>';
+    out+='<p class="save">Benefits and protections are on the Perks tab.</p>';
+  }else if(tab==='due'){
+    var next=pending.filter(hasEnd)[0], cl=claimed();
+    out+='<div class="hero '+CARD+'"><div class="hero-top"><span class="chip" aria-hidden="true"></span><span class="card-name">'+esc(CD.tag)+'</span></div>';
+    if(next){
+      var same=pending.filter(function(c){return hasEnd(c)&&days(c)===days(next)});
+      var atRisk=same.reduce(function(s,c){return s+amtNow(c)},0);
+      out+='<span class="label">Next deadline · '+fmtDate(endOf(next))+'</span><div class="hero-main"><div class="hero-days num">'+days(next)+'<small>days</small></div>'+
+        '<div class="hero-what">'+(atRisk?money(atRisk)+' to use':'Use it')+'<span>'+same.map(function(c){return esc(c.name)}).join(', ')+'</span></div></div>';
+    }else out+='<span class="label">All caught up</span><div class="hero-days">0<small>due</small></div>';
+    out+='<div class="hero-bar"><i style="width:'+Math.min(100,cl/MAXV*100).toFixed(1)+'%"></i></div><div class="hero-foot"><span class="num">'+money(cl)+' claimed in '+Y+'</span><span class="num">fee '+money(CD.fee)+'</span></div></div>';
+    out+=updatedHTML();
+    var week=pending.filter(function(c){return days(c)<=7}), month=pending.filter(function(c){return days(c)>7&&days(c)<=31}), later=pending.filter(function(c){return days(c)>31});
+    out+=group('This week','7 days or less',week)+group('This month','by '+fmtDate(new Date(Y,M,now.getDate()+31)),month)+group('Later','',later);
+    if(!pending.length)out+='<p class="empty">Every credit is used for this period. New ones unlock on the 1st.</p>';
+    out+=group('Done','this period',doneNow);
+  }else if(tab==='perks'){
+    out+='<h1>Perks</h1><p style="color:var(--muted)">Protections and travel benefits that come with the card. Tap one for what it covers and how to use it.</p>';
+    PGROUPS.forEach(function(G){
+      out+='<div class="group"><div class="group-head"><h2>'+G[1]+'</h2><span>'+G[2]+'</span></div>'+PERKS.filter(function(p){return p.g===G[0]}).map(perkHTML).join('')+'</div>';
+    });
+    if(CREDITS.length)out+='<div class="card"><h2>Use the '+esc(CD.name)+' for</h2><ul>'+CD.use.map(function(u){return '<li>'+esc(u)+'</li>'}).join('')+'</ul></div>';
+    out+=CD.claim;
+    out+='<p class="save">'+esc(CD.foot)+'</p>';
+  }else if(tab==='setup'){
+    var sd=SETUP.filter(function(s){return state.setup[s[0]]}).length;
+    out+='<h1>Setup</h1><p style="color:var(--muted)">'+sd+' of '+SETUP.length+' done'+(CARD==='qs'?' for the Quicksilver.':'. Most credits pay nothing until you enroll.')+'</p><div class="item">'+
+      SETUP.map(function(s){var d=!!state.setup[s[0]];return '<div class="setup-item'+(d?' done':'')+'"><div><strong>'+esc(s[1])+'</strong><small>'+esc(s[2])+'</small></div><button type="button" class="check" data-setup="'+s[0]+'" aria-pressed="'+d+'" aria-label="Mark done: '+esc(s[1])+'">'+CHECK+'</button></div>'}).join('')+'</div>';
+  }else{
+    out+=newsHTML();
+  }
+  if(tab==='setup')out+='<div class="card"><h2>Put this on your home screen</h2><ol><li>Open this link in Safari.</li><li>Tap Share, then Add to Home Screen.</li></ol><p style="font-size:13px;color:var(--muted)">On Android: Chrome menu → Add to Home screen.</p></div>';
+  out+='<p class="save" id="saveMsg">'+saveText+'</p>';
+  document.getElementById('app').innerHTML=out;
+  var hot=pending.filter(function(c){return days(c)<=7}).length;
+  var hotO=(newsItems||[]).filter(function(n){return n.added&&n.added>lastSeen}).length;
+  var T=[['due','Due','<path d="M12 7v5l3 2"/><circle cx="12" cy="12" r="9"/>'],['perks','Perks','<path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6z"/>'],['news','News','<path d="M4 5h13v14H6a2 2 0 0 1-2-2z"/><path d="M17 9h3v8a2 2 0 0 1-2 2"/><path d="M7 9h7M7 13h7M7 16h4"/>'],['setup','Setup','<path d="M9 11l3 3 8-8"/><path d="M20 12v7a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h11"/>']];
+  document.getElementById('tabs').innerHTML='<div class="tabs-in">'+T.map(function(t){var aK=Object.keys(alerts), aDue=CREDITS.filter(function(c){return alerts[c.id]}).length, aPerk=PERKS.filter(function(p){return alerts['p-'+p.id]}).length;
+var n=t[0]==='due'?hot+aDue:t[0]==='perks'?aPerk:(t[0]==='news'&&tab!=='news')?hotO:0;return '<button type="button" class="tab" data-tab="'+t[0]+'"'+(tab===t[0]?' aria-current="page"':'')+'><svg viewBox="0 0 24 24">'+t[2]+'</svg>'+t[1]+(n?'<span class="dot num">'+n+'</span>':'')+'</button>'}).join('')+'</div>';
+  if(tab==='news'&&newsItems&&newsItems.length){
+    var mx=newsItems.reduce(function(m,x){return x.added&&x.added>m?x.added:m},'');
+    if(mx>lastSeen){lastSeen=mx;try{localStorage.setItem(LS+'-seen',mx)}catch(e){}}
+  }
+}
+
+// ---- Amex News hub ----
+var TAGS={new:['New','ok'],changing:['Changing','soon'],ending:['Ending','hot'],rumor:['Rumor','info'],tip:['Tip','info']};
+function newsItem(n){
+  var t=TAGS[n.tag]||TAGS.tip, wd=pDate(n.when), wl=wd?Math.round((wd-TODAY)/86400000):null;
+  var whenTxt=wd?(wl>0?'Takes effect '+fmtDate(wd)+', '+wd.getFullYear()+' · in '+wl+' day'+(wl===1?'':'s'):wl===0?'Takes effect today':'Took effect '+fmtDate(wd)+', '+wd.getFullYear()):'';
+  return '<article class="item news"><div class="news-head"><span class="pill '+t[1]+'">'+t[0]+'</span>'+(n.date?'<span class="news-date">'+fmtDate(pDate(n.date)||TODAY)+'</span>':'')+(n.added&&n.added>lastSeenAtOpen?'<span class="pill fresh">Fresh</span>':'')+'</div>'+
+    '<h3>'+esc(n.title||'')+'</h3>'+(n.summary?'<p>'+esc(n.summary)+'</p>':'')+
+    (n.impact?'<p class="impact"><strong>For you:</strong> '+esc(n.impact)+'</p>':'')+
+    (whenTxt?'<p class="tip">'+whenTxt+'</p>':'')+
+    (n.url&&/^https:\/\//.test(n.url)?'<div class="links"><a href="'+esc(n.url)+'" target="_blank" rel="noopener">'+esc(n.source||'Source')+' ↗</a></div>':'')+'</article>';
+}
+function newsHTML(){
+  var s='<div class="news-top"><h1>'+esc(CARDS[CARD].name)+' News</h1>'+refreshBtnHTML()+'</div>'+updatedHTML();
+  if(refreshMsg)s+='<p class="status">'+esc(refreshMsg)+'</p>';
+  if(newsState==='loading'&&!newsItems)return s+'<p class="empty">Loading today’s briefing…</p>';
+  if(newsState==='off')return s+'<p class="empty">News can’t load in this view. Open the tracker from its link to see it.</p>';
+  if(newsState==='slow'&&!newsItems)return s+'<p class="empty">Can’t reach the news right now. Check your connection.</p>';
+  if(brief&&(brief.headline||brief.summary))s+='<div class="card brief"><span class="label">Today’s briefing</span><h2>'+esc(brief.headline||'')+'</h2>'+(brief.summary?'<p>'+esc(brief.summary)+'</p>':'')+'</div>';
+  var items=(newsItems||[]).filter(function(n){return (n.card||'plat')===CARD});
+  var upcoming=items.filter(function(n){var d=pDate(n.when);return d&&d>=TODAY}).sort(function(a,b){return pDate(a.when)-pDate(b.when)});
+  if(upcoming.length)s+='<div class="group"><div class="group-head"><h2>Coming up</h2><span>dates to know</span></div><div class="item">'+upcoming.map(function(n){var d=pDate(n.when),dl=Math.round((d-TODAY)/86400000);return '<div class="setup-item"><div><strong>'+esc(n.title)+'</strong><small>'+fmtDate(d)+', '+d.getFullYear()+'</small></div><div class="days '+(dl<=31?'soon':'')+'" style="width:52px"><b class="num">'+dl+'</b><small>days</small></div></div>'}).join('')+'</div></div>';
+  if(items.length)s+='<div class="group"><div class="group-head"><h2>Latest</h2><span>'+items.length+' stories</span></div>'+items.map(newsItem).join('')+'</div>';
+  else s+='<p class="empty">No news yet. The first briefing arrives tomorrow morning.</p>';
+  s+='<div class="links"><a href="https://www.americanexpress.com/en-us/benefits/offers/" target="_blank" rel="noopener">Open my Amex Offers ↗</a></div>';
+  if(newsState==='slow')s+='<p class="save">Showing saved news. It may be out of date.</p>';
+  return s;
+}
+var lastSeenAtOpen=lastSeen;
+
+// ---- Refresh now + last updated ----
+var TRIGGER='trig_01955BzANdnZAQUWBznpi7VS', mcpApi=null, refreshing=false, refreshAt=0, refreshMsg='', refreshTimer=null;
+function ago(ms){var m=Math.round(ms/60000);if(m<1)return 'just now';if(m<60)return m+' min ago';var h=Math.round(m/60);if(h<24)return h+' hr'+(h===1?'':'s')+' ago';var d=Math.round(h/24);return d+' day'+(d===1?'':'s')+' ago'}
+function updatedHTML(){
+  if(!brief||!brief.updated)return '<p class="updated">Last updated: not yet</p>';
+  var u=new Date(brief.updated);
+  return '<p class="updated">Last updated '+MON[u.getMonth()]+' '+u.getDate()+' at '+u.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})+' · '+ago(Date.now()-u.getTime())+'<br><span>Checks automatically every morning</span></p>';
+}
+function refreshBtnHTML(){
+  if(!mcpApi)return '';
+  return '<button type="button" class="refresh'+(refreshing?' spinning':'')+'" data-refresh="1"'+(refreshing?' disabled':'')+'><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>'+(refreshing?'Checking…':'Refresh')+'</button>';
+}
+function doRefresh(){
+  if(!mcpApi||refreshing)return;
+  refreshing=true;refreshAt=Date.now();refreshMsg='Started a fresh check of news, credits and perks. It takes a few minutes; this page updates by itself when it finishes.';render();
+  mcpApi.callTool('Claude Code Remote','fire_trigger',{trigger_id:TRIGGER,text:'Manual refresh requested from the app just now. Run every step.'},{cache:false}).then(function(){
+    clearTimeout(refreshTimer);
+    refreshTimer=setTimeout(function(){if(refreshing){refreshing=false;refreshMsg='Still working. Check back in a few minutes; results appear here automatically.';render()}},15*60000);
+  }).catch(function(e){
+    refreshing=false;var c=e&&e.code;
+    if(c==='needs_reauth')refreshMsg='Reconnect Claude Code Remote in claude.ai Settings → Connectors, then try again.';
+    else if(c==='server_not_connected'||c==='selection_required')refreshMsg='Refresh needs the Claude Code Remote connector. Add it in claude.ai Settings → Connectors.';
+    else if(c==='not_in_manifest'||c==='approval_required'||c==='consent_required')refreshMsg='Refresh needs your OK. Tap Refresh again and choose Allow.';
+    else if(c==='blocked_by_policy')refreshMsg='Your account settings block starting the check from here.';
+    else if(c==='not_granted'||c==='capability_disabled'||c==='capability_removed'){mcpApi=null;refreshMsg='Refresh isn’t available in this view. Open the tracker from its link.'}
+    else if(c==='server_unavailable'||c==='upstream_error')refreshMsg='Couldn’t confirm the check started. Wait a minute before trying again so it doesn’t run twice.';
+    else if(c==='tool_error')refreshMsg='The check couldn’t start: '+(e.message||'unknown reason');
+    else refreshMsg='Couldn’t start the check. Try again in a minute.';
+    render();
+  });
+}
+function briefArrived(){
+  if(refreshing&&brief&&brief.updated&&new Date(brief.updated).getTime()>refreshAt-60000){refreshing=false;clearTimeout(refreshTimer);refreshMsg='Done. Everything is up to date.'}
+}
+
+// ---- Amex Offers (retired UI, data kept) ----
+var sampleFn=null, imgMax=0, busy='', oMsg='';
+function pDate(s){var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s||'');return m?new Date(+m[1],+m[2]-1,+m[3]):null}
+function oDays(o){var d=pDate(o.exp);return d?Math.round((d-TODAY)/86400000):null}
+function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function offerItem(o){
+  var d=oDays(o), cls=o.used?'ok':(d===null?'':urg(d));
+  return '<div class="item'+(o.used?' done':'')+'"><div class="item-row">'+
+    '<div class="days '+cls+'">'+(o.used?'<b>✓</b><small>used</small>':(d===null?'<b>–</b><small>no date</small>':'<b class="num">'+d+'</b><small>day'+(d===1?'':'s')+'</small>'))+'</div>'+
+    '<div class="info"><strong>'+esc(o.m)+'</strong><span>'+esc(o.d)+(o.exp?' · ends '+fmtDate(pDate(o.exp)):'')+'</span>'+
+    '<button type="button" class="linkbtn" data-odel="'+o.id+'">Remove</button></div>'+
+    '<button type="button" class="check" data-oused="'+o.id+'" aria-pressed="'+!!o.used+'" aria-label="Mark '+esc(o.m)+' offer used">'+CHECK+'</button></div></div>';
+}
+function offersHTML(){
+  var all=state.offers;
+  var expired=all.filter(function(o){var d=oDays(o);return !o.used&&d!==null&&d<0});
+  var live=all.filter(function(o){var d=oDays(o);return !o.used&&!(d!==null&&d<0)}).sort(function(a,b){var x=oDays(a),y=oDays(b);return (x===null?9999:x)-(y===null?9999:y)});
+  var used=all.filter(function(o){return o.used});
+  var s='<h1>Amex Offers</h1><p style="color:var(--muted)">Your personal deals change all the time, so add them here from the Amex app. Each offer must be <strong>added to your card</strong> in the Amex app before you shop.</p>';
+  s+='<div class="card import"><h2>Add your offers</h2>';
+  if(sampleFn){
+    s+='<ol><li>In the Amex app, open <strong>Offers</strong> → <strong>Added to Card</strong>.</li><li>Take screenshots of the list.</li><li>Pick them below. The dates and deals fill in for you.</li></ol>';
+    if(imgMax)s+='<label class="bigbtn" for="oShots">Add from screenshots</label><input type="file" id="oShots" accept="image/png,image/jpeg,image/webp" multiple hidden>';
+    s+='<details><summary>Or paste offer text</summary><textarea id="oText" rows="4" placeholder="Paste text copied from your Amex Offers page"></textarea><button type="button" class="bigbtn" data-oread="1">Read text</button></details>';
+  }
+  s+='<details'+(sampleFn?'':' open')+'><summary>Add one by hand</summary><div class="form"><label for="oM">Store</label><input id="oM" placeholder="Bose"><label for="oD">Deal</label><input id="oD" placeholder="Spend $200, get $40 back"><label for="oE">Expires</label><input id="oE" type="date"><button type="button" class="bigbtn" data-oadd="1">Add offer</button></div></details>';
+  if(busy)s+='<p class="status">'+esc(busy)+'</p>';
+  if(oMsg)s+='<p class="status">'+esc(oMsg)+'</p>';
+  s+='</div>';
+  if(!all.length)s+='<p class="empty">No offers yet. Add your first batch from a screenshot above.</p>';
+  if(live.length)s+='<div class="group"><div class="group-head"><h2>Active</h2><span>'+live.length+' offer'+(live.length===1?'':'s')+'</span></div>'+live.map(offerItem).join('')+'</div>';
+  if(used.length)s+='<div class="group"><div class="group-head"><h2>Used</h2><span>'+used.length+'</span></div>'+used.map(offerItem).join('')+'</div>';
+  if(expired.length)s+='<div class="card"><p>'+expired.length+' offer'+(expired.length===1?' has':'s have')+' expired.</p><button type="button" class="bigbtn ghost" data-oclear="1">Clear expired and used</button></div>';
+  return s;
+}
+function addOffers(list){
+  var n=0;
+  (list||[]).forEach(function(x){
+    if(!x||!x.merchant)return;
+    var m=String(x.merchant).trim().slice(0,60), d=String(x.deal||'').trim().slice(0,120), e=/^\d{4}-\d{2}-\d{2}$/.test(x.expires||'')?x.expires:'';
+    var dup=state.offers.filter(function(o){return o.m.toLowerCase()===m.toLowerCase()&&o.d.toLowerCase()===d.toLowerCase()})[0];
+    if(dup){if(e&&!dup.exp)dup.exp=e;return}
+    state.offers.push({id:'o'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),m:m,d:d,exp:e,used:false});n++;
+  });
+  return n;
+}
+var OPROMPT=function(){return 'These are from the "Amex Offers" section of an American Express cardmember’s account. Today is '+iso(TODAY)+'. List every distinct offer shown. Reply with only a JSON array, one object per offer: {"merchant": string, "deal": string (short, like "Spend $50+, get $10 back" or "Earn +3 points per dollar"), "expires": "YYYY-MM-DD" or "" if no date is shown}. If a date has no year, use the next time that date occurs on or after today. Skip anything that is not an offer. Example: [{"merchant":"Bose","deal":"Spend $200+, get $40 back","expires":"2026-12-31"}]'};
+function runSample(input,opts){
+  busy='Reading your offers…';oMsg='';render();
+  sampleFn.json(input,opts).then(function(r){
+    var n=addOffers(Array.isArray(r)?r:[]);busy='';
+    oMsg=n?'Added '+n+' offer'+(n===1?'':'s')+'. Check the dates against the Amex app.':'No new offers found. Try a clearer screenshot or add one by hand.';
+    if(n)changed();else render();
+  }).catch(function(e){
+    busy='';var c=e&&e.code;
+    if(c==='not_granted'||c==='sampling_disabled'||c==='capability_disabled'||c==='not_declared'){sampleFn=null;oMsg='Reading screenshots is turned off for this page. You can still add offers by hand.'}
+    else if(c==='images_unavailable'){imgMax=0;oMsg='Screenshots can’t be read here. Try pasting the text instead.'}
+    else if(c==='image_rejected')oMsg='That image couldn’t be read. Try a PNG or JPG screenshot.';
+    else if(c==='rate_limited')oMsg='Too many tries right now. Wait a few minutes and try again.';
+    else if(c==='cancelled')oMsg='';
+    else oMsg='Something went wrong reading those offers. Try again.';
+    render();
+  });
+}
+
+var saveText='Saved on this phone';
+function setSave(t){saveText=t;var el=document.getElementById('saveMsg');if(el)el.textContent=t}
+var art=null,timer=null;
+function changed(){
+  state.t=Date.now();
+  try{localStorage.setItem(LS,JSON.stringify(state))}catch(e){}
+  render();
+  if(art){setSave('Saving…');clearTimeout(timer);timer=setTimeout(publish,1200)}
+}
+var SKEL='<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style></head><body>';
+function buildDoc(){
+  var js=JSON.stringify(state).replace(/</g,'\\u003c');
+  return SKEL+'<title>Shared Platinum Tracker</title>\n<meta name="claude:viewport-fit-sides" content="cover">\n'+
+   '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">\n'+
+   '<style id="pstyle">'+SRC_STYLE+'</style>\n<script type="application/json" id="pstate">'+js+'<\/script>\n'+
+   '<div id="app" class="app"><p class="empty">Loading…</p></div>\n<nav class="tabs" id="tabs"></nav>\n<script id="pmain">'+SRC_MAIN+'<\/script></body></html>';
+}
+function publish(){
+  if(!art)return;
+  art.publish(buildDoc()).then(function(){setSave('Saved')}).catch(function(e){
+    var code=e&&e.code;
+    if(code==='conflict')setSave('Updated from another device');
+    else if(code==='not_granted'||code==='not_writer'){art=null;setSave('Saved on this phone')}
+    else setSave('Saved on this phone');
+  });
+}
+document.addEventListener('click',function(e){
+  var t=e.target.closest&&e.target.closest('button');if(!t)return;
+  if(t.dataset.tab){tab=t.dataset.tab;try{localStorage.setItem(LS+'-tab',tab)}catch(err){}render();window.scrollTo(0,0);return}
+  if(t.dataset.open){open[t.dataset.open]=!open[t.dataset.open];render();return}
+  if(t.dataset.setup){var k=t.dataset.setup;if(state.setup[k])delete state.setup[k];else state.setup[k]=true;changed();return}
+  if(t.dataset.refresh){doRefresh();return}
+  if(t.dataset.card){setCard(t.dataset.card);open={};render();window.scrollTo(0,0);return}
+  if(t.dataset.savedate){var el=document.getElementById('dt-'+t.dataset.savedate),v=el&&el.value||'';if(v)state.dates[t.dataset.savedate]=v;else delete state.dates[t.dataset.savedate];changed();return}
+  if(t.dataset.oused){state.offers.forEach(function(o){if(o.id===t.dataset.oused)o.used=!o.used});changed();return}
+  if(t.dataset.odel){state.offers=state.offers.filter(function(o){return o.id!==t.dataset.odel});changed();return}
+  if(t.dataset.oclear){state.offers=state.offers.filter(function(o){var d=oDays(o);return !o.used&&!(d!==null&&d<0)});oMsg='';changed();return}
+  if(t.dataset.oadd){
+    var m=(document.getElementById('oM').value||'').trim(), dd=(document.getElementById('oD').value||'').trim(), ex=document.getElementById('oE').value||'';
+    if(!m){oMsg='Enter the store name first.';render();return}
+    var n=addOffers([{merchant:m,deal:dd,expires:ex}]);oMsg=n?'Added '+m+'.':'That offer is already on your list.';changed();return
+  }
+  if(t.dataset.oread){
+    var txt=(document.getElementById('oText').value||'').trim();
+    if(!txt){oMsg='Paste some offer text first.';render();return}
+    if(sampleFn&&!busy)runSample(OPROMPT()+'\n\nOffer text:\n'+txt.slice(0,20000),{});
+    return
+  }
+  if(t.dataset.c){
+    var c=CREDITS.filter(function(x){return x.id===t.dataset.c})[0];if(!c)return;
+    var key=pkey(c,+t.dataset.i);state.checks[c.id]=state.checks[c.id]||{};
+    if(state.checks[c.id][key])delete state.checks[c.id][key];else state.checks[c.id][key]=true;
+    if(navigator.vibrate){try{navigator.vibrate(10)}catch(err){}}
+    changed();
+  }
+});
+document.addEventListener('change',function(e){
+  if(e.target.id!=='oShots'||!e.target.files||!e.target.files.length||!sampleFn||busy)return;
+  var files=Array.prototype.slice.call(e.target.files,0,imgMax||1);
+  runSample(OPROMPT()+(e.target.files.length>files.length?'':''),{images:files});
+});
+render();
+if(window.claude&&window.claude.use){
+  window.claude.use('artifact').then(function(a){if(a){art=a;setSave('Saved to your account')}}).catch(function(){});
+  
+}
+(function(){try{var P=JSON.parse(document.getElementById('pnews').textContent);newsItems=(P.news||[]).slice().sort(function(a,b){return (b.date||'').localeCompare(a.date||'')});var A=P.alerts||{},a={};Object.keys(A).forEach(function(k){if(A[k]&&A[k].active!==false)a[k]=A[k]});alerts=a;brief=P.brief||null;newsState='ok'}catch(e){newsState='off'}render()})();
+})();
+</script>
+</body></html>
