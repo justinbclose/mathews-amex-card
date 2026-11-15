@@ -164,6 +164,14 @@ textarea,.form input{width:100%;font:16px var(--body);padding:10px 12px;border:1
 .setup-item strong{font-weight:700}
 .setup-item small{display:block;color:var(--muted);font-size:13px}
 .setup-item.done strong{color:var(--muted);text-decoration:line-through}
+.srow{border-bottom:1px solid var(--line)}
+.srow:last-child{border-bottom:0}
+.srow .setup-item{border-bottom:0;grid-template-columns:1fr 44px 44px;gap:8px}
+.srow .detail{border-top:1px dashed var(--line)}
+.more{width:44px;height:44px;border-radius:50%;border:0;background:transparent;color:var(--muted);display:grid;place-content:center;cursor:pointer;padding:0}
+.more svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transition:transform .25s var(--ease)}
+.more[aria-expanded="true"]{color:var(--accent);background:var(--accent-soft)}
+.more[aria-expanded="true"] svg{transform:rotate(180deg)}
 .meter{height:8px;border-radius:4px;background:var(--line);overflow:hidden;margin-top:-6px}
 .meter i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .5s var(--ease)}
 .empty{text-align:center;color:var(--muted);padding:24px 0}
@@ -285,6 +293,32 @@ var SETUP=[
  ['ge','Apply for Global Entry','Pay with the Platinum'],
  ['airbnb','Link Airbnb to Amex','Only needed for the Airbnb Luxe and Experiences credits']
 ];
+
+// ---- Setup details (opened only with the arrow button) ----
+var TERMS=['Read the T&Cs','https://www.americanexpress.com/us/credit-cards/features-benefits/platinum/terms.html'];
+var SINFO={
+ ent:{how:'Enroll in the Amex app under Benefits, then pay a streaming service directly with the Platinum.'},
+ air:{how:'Pick one airline at americanexpress.com/airlinechoice or in the Amex app. You can change it once a year, in January.',links:[['Pick your airline','https://www.americanexpress.com/airlinechoice'],TERMS]},
+ hilton:{what:'Hilton Honors Gold status: bonus points, a daily food and drink credit at US Hilton hotels, and room upgrades when available.',how:'Make a free Hilton Honors account first, then enroll in the Amex app under Benefits.',tip:'You keep Gold as long as the card stays open. Put your Hilton number on every booking.',links:[['Hilton Honors','https://www.hilton.com/'],['How the hotel status works','https://thepointsguy.com/news/amex-fhr-bookings-5x-and-elite-benefits/'],TERMS]},
+ marriott:{what:'Marriott Bonvoy Gold Elite status: room upgrades and 2 p.m. checkout when available, plus bonus points.',how:'Make a free Marriott Bonvoy account first, then enroll in the Amex app under Benefits.',tip:'You keep Gold Elite as long as the card stays open. Put your Marriott number on every booking.',links:[['Marriott Bonvoy','https://www.marriott.com/'],['How the hotel status works','https://thepointsguy.com/news/amex-fhr-bookings-5x-and-elite-benefits/'],TERMS]},
+ lhw:{what:'Leaders Club Sterling status at Leading Hotels of the World: daily breakfast for two, upgrade priority, and early check-in or late checkout when available.',how:'Make a free Leaders Club account, then enroll in the Amex app under Benefits (or call the number on the back of the card).',tip:'Use the same email on Leaders Club as on your Amex account, or enrollment can fail. The perks apply when you book eligible rates directly with Leading Hotels of the World, and they don’t stack with Fine Hotels + Resorts.',links:[['Leading Hotels of the World','https://www.lhw.com/'],['Guide to Sterling status','https://upgradedpoints.com/credit-cards/reviews/american-express-platinum-card/leaders-club-sterling-status/'],TERMS]},
+ car:{what:'Rental car elite status: Hertz President’s Circle, Avis Preferred Plus and National Emerald Club Executive.',how:'In your Amex account, open Benefits, then Car Rental Privileges, and enroll in each one.',tip:'Amex is asking Platinum members to re-enroll for Hertz by December 31, 2026, and some accounts show Avis and National needing it too.',links:[['Re-enrollment details','https://upgradedpoints.com/news/amex-platinum-hertz-benefit-reenrollment/'],['Status guide','https://upgradedpoints.com/credit-cards/reviews/american-express-platinum-card/hotel-and-car-rental-benefits/'],TERMS]},
+ pp:{what:'Priority Pass lounge membership, alongside Centurion, Delta Sky Club, Escape and Plaza Premium lounge access.',how:'Enroll in the Amex app under Benefits, then add the Priority Pass digital card to your phone.',tip:'Show the Priority Pass card and a same-day boarding pass at the lounge desk.',links:[['Priority Pass','https://www.prioritypass.com/'],TERMS]},
+ clear:{how:'Enroll in the Amex app under Benefits, then pay for an auto-renewing CLEAR+ membership with the Platinum.'},
+ wmt:{how:'Pay for a monthly Walmart+ membership with the Platinum (annual plans don’t count).'},
+ ge:{what:'A statement credit for Global Entry ($120) or TSA PreCheck (up to $85), once every 4 years.',how:'Apply on the Trusted Traveler site and pay the application fee with the Platinum.',tip:'Global Entry includes PreCheck, so it’s usually the better pick.',links:[['Apply (Trusted Traveler)','https://ttp.dhs.gov/'],['Credit terms','https://www.americanexpress.com/expeditedtravel'],TERMS]},
+ airbnb:{how:'Link your Airbnb account to Amex, then prepay an Airbnb Luxe stay (2+ nights) on Amex Travel.'}
+};
+function setupRow(s){
+  var id=s[0],d=!!state.setup[id],k='s-'+id,o=!!open[k],c=CREDITS.filter(function(x){return x.id===id})[0],I=SINFO[id]||{};
+  var what=I.what||(c?'Worth up to '+money(c.annual)+' a year. '+c.how:''),how=I.how||s[2],tip=I.tip||(c?c.tip:''),L=I.links||(LINKS[id]||[]).concat([TERMS]);
+  var h='<div class="srow"><div class="setup-item'+(d?' done':'')+'"><div><strong>'+esc(s[1])+'</strong><small>'+esc(s[2])+'</small></div>'+
+    '<button type="button" class="more" data-open="'+k+'" aria-expanded="'+o+'" aria-label="'+(o?'Hide':'Show')+' details: '+esc(s[1])+'"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>'+
+    '<button type="button" class="check" data-setup="'+id+'" aria-pressed="'+d+'" aria-label="Mark done: '+esc(s[1])+'">'+CHECK+'</button></div>';
+  if(o)h+='<div class="detail">'+(what?'<p>'+esc(what)+'</p>':'')+'<p><strong>How to enroll:</strong> '+esc(how)+'</p>'+(tip?'<p class="tip">'+esc(tip)+'</p>':'')+
+    (L.length?'<div class="links">'+L.map(function(l){return '<a href="'+l[1]+'" target="_blank" rel="noopener">'+esc(l[0])+' ↗</a>'}).join('')+'</div>':'')+'</div>';
+  return h+'</div>';
+}
 
 // ---- Other cards ----
 var D_CREDITS=[
@@ -442,7 +476,7 @@ function render(){
   }else if(tab==='setup'){
     var sd=SETUP.filter(function(s){return state.setup[s[0]]}).length;
     out+='<h1>Setup</h1><p style="color:var(--muted)">'+sd+' of '+SETUP.length+' done'+(CARD==='qs'?' for the Quicksilver.':'. Most credits pay nothing until you enroll.')+'</p><div class="meter" role="progressbar" aria-label="Setup progress" aria-valuemin="0" aria-valuemax="'+SETUP.length+'" aria-valuenow="'+sd+'"><i style="width:'+(sd/SETUP.length*100).toFixed(1)+'%"></i></div><div class="item">'+
-      SETUP.map(function(s){var d=!!state.setup[s[0]];return '<div class="setup-item'+(d?' done':'')+'"><div><strong>'+esc(s[1])+'</strong><small>'+esc(s[2])+'</small></div><button type="button" class="check" data-setup="'+s[0]+'" aria-pressed="'+d+'" aria-label="Mark done: '+esc(s[1])+'">'+CHECK+'</button></div>'}).join('')+'</div>';
+      SETUP.map(setupRow).join('')+'</div>';
   }else{
     out+=newsHTML();
   }
@@ -683,7 +717,7 @@ var KEY='plat-tracker-v1-welcome';
 try{if(localStorage.getItem(KEY))return}catch(e){return}
 var STEPS=[
  {tab:null,title:'Welcome, Mathew',body:'<p>Your Amex Platinum comes with a lot of credits that quietly expire if you don’t use them. This app keeps track for you.</p><p>Here’s a 30-second tour.</p>'},
- {tab:'setup',title:'Start here: Setup',body:'<p>Since the card is new, most credits pay <strong>nothing until you enroll</strong> in the Amex app.</p><p>Setup is your checklist. Do each one, then tap its circle to tick it off.</p>'},
+ {tab:'setup',title:'Start here: Setup',body:'<p>Since the card is new, most credits pay <strong>nothing until you enroll</strong> in the Amex app.</p><p>Setup is your checklist. Tap the arrow on any item to see what it gets you, how to enroll and the terms. Tap the circle once it’s done.</p>'},
  {tab:'due',title:'Due: what to use and when',body:'<ul><li>Every credit, sorted by how many days are left</li><li>Tap a credit to see how to use it</li><li>Tap the circle once you’ve used it this month or quarter</li></ul>'},
  {tab:'due',title:'Don’t leave money on the table',body:'<p><strong>Every month</strong> (use by the last day): $25 streaming, $15 Uber Cash ($35 in December), Walmart+.</p><p><strong>Every quarter</strong> (by Mar 31, Jun 30, Sep 30, Dec 31): $100 Resy dining and $75 lululemon.</p><p><strong>Twice a year</strong> (by Jun 30 and Dec 31): $300 hotel credit on Amex Travel.</p><p><strong>Once a year</strong> (by Dec 31): $200 airline fees, CLEAR+, Uber One, Equinox, Oura and Airbnb. The Due tab counts down to each one.</p>'},
  {tab:'perks',title:'Perks: what the card covers',body:'<p>Lounges, trip delay, phone and purchase protection, and how to file a claim. Tap any one for the details.</p>'},
