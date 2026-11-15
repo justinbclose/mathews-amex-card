@@ -625,4 +625,72 @@ if(window.claude&&window.claude.use){
 (function(){try{var P=JSON.parse(document.getElementById('pnews').textContent);newsItems=(P.news||[]).slice().sort(function(a,b){return (b.date||'').localeCompare(a.date||'')});var A=P.alerts||{},a={};Object.keys(A).forEach(function(k){if(A[k]&&A[k].active!==false)a[k]=A[k]});alerts=a;brief=P.brief||null;newsState='ok'}catch(e){newsState='off'}render()})();
 })();
 </script>
+<style id="ptourstyle">
+/* First-visit walkthrough. Shows once per browser, then never again. */
+.tour-back{position:fixed;inset:0;background:rgba(10,14,18,.55);z-index:50;display:flex;align-items:flex-end;justify-content:center;padding:0 16px calc(104px + env(safe-area-inset-bottom,0px))}
+.tour-card{background:var(--card);color:var(--fg);border-radius:18px;max-width:440px;width:100%;padding:20px 20px 16px;box-shadow:0 18px 40px rgba(0,0,0,.3);display:flex;flex-direction:column;gap:10px}
+.tour-card.center{margin-bottom:auto;margin-top:auto}
+.tour-step{font-size:11px;letter-spacing:.11em;text-transform:uppercase;font-weight:700;color:var(--muted)}
+.tour-card h2{font-family:var(--display);font-size:22px;margin:0;text-wrap:balance}
+.tour-card p{font-size:15px;margin:0}
+.tour-card ul{margin:0;padding-left:18px;font-size:14px;display:flex;flex-direction:column;gap:4px}
+.tour-dots{display:flex;gap:6px}
+.tour-dots i{width:7px;height:7px;border-radius:50%;background:var(--line)}
+.tour-dots i.on{background:var(--accent)}
+.tour-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px}
+.tour-skip{background:none;border:0;color:var(--muted);font:600 14px var(--body);min-height:44px;padding:0 4px;cursor:pointer}
+.tour-next{min-height:46px;padding:0 22px;border-radius:12px;border:0;background:var(--accent);color:var(--card);font:700 15px var(--body);cursor:pointer}
+body.touring .tabs{z-index:51;pointer-events:none}
+.tab.tour-hi{outline:3px solid var(--accent);outline-offset:-3px;background:var(--accent-soft)}
+@media (prefers-reduced-motion:no-preference){.tab.tour-hi{animation:tourpulse 1.4s ease-in-out infinite}@keyframes tourpulse{50%{outline-color:transparent}}}
+</style>
+<script id="ptour">
+(function(){
+var KEY='plat-tracker-v1-welcome';
+try{if(localStorage.getItem(KEY))return}catch(e){return}
+var STEPS=[
+ {tab:null,title:'Welcome to your Platinum Tracker',body:'<p>Your Amex Platinum comes with a lot of credits that quietly expire if you don’t use them. This app keeps track for you.</p><p>Here’s a 30-second tour.</p>'},
+ {tab:'setup',title:'Start here: Setup',body:'<p>Since the card is new, most credits pay <strong>nothing until you enroll</strong> in the Amex app.</p><p>Setup is your checklist. Do each one, then tap its circle to tick it off.</p>'},
+ {tab:'due',title:'Due: what to use and when',body:'<ul><li>Every credit, sorted by how many days are left</li><li>Tap a credit to see how to use it</li><li>Tap the circle once you’ve used it this month or quarter</li></ul>'},
+ {tab:'due',title:'Don’t leave money on the table',body:'<p><strong>Every month</strong> (use by the last day): $25 streaming, $15 Uber Cash ($35 in December), Walmart+.</p><p><strong>Every quarter</strong> (by Mar 31, Jun 30, Sep 30, Dec 31): $100 Resy dining and $75 lululemon.</p><p><strong>Twice a year</strong> (by Jun 30 and Dec 31): $300 hotel credit on Amex Travel.</p><p><strong>Once a year</strong> (by Dec 31): $200 airline fees, CLEAR+, Uber One, Equinox, Oura and Airbnb. The Due tab counts down to each one.</p>'},
+ {tab:'perks',title:'Perks: what the card covers',body:'<p>Lounges, trip delay, phone and purchase protection, and how to file a claim. Tap any one for the details.</p>'},
+ {tab:'news',title:'News: updated every morning',body:'<p>Changes to the card, new credits and deadlines worth knowing, checked fresh each day.</p>'},
+ {tab:null,title:'Put it on your home screen',body:'<p>In Safari, tap <strong>Share</strong>, then <strong>Add to Home Screen</strong>. It opens like an app.</p><p style="color:var(--muted);font-size:13px">Your checkmarks are saved on this phone only. No account or login.</p>',last:true}
+];
+var i=0, back;
+function goTab(t){var b=document.querySelector('.tab[data-tab="'+t+'"]');if(b)b.click()}
+function hi(t){Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(b){b.classList.toggle('tour-hi',!!t&&b.dataset.tab===t)})}
+function done(toSetup){
+  try{localStorage.setItem(KEY,String(Date.now()))}catch(e){}
+  document.body.classList.remove('touring');hi(null);
+  if(back)back.remove();
+  goTab(toSetup?'setup':'due');
+}
+function show(){
+  var s=STEPS[i];
+  if(s.tab)goTab(s.tab);
+  hi(s.tab);
+  back.innerHTML='<div class="tour-card'+(s.tab?'':' center')+'" role="dialog" aria-modal="true" aria-labelledby="tourT">'+
+    '<span class="tour-step">'+(i+1)+' of '+STEPS.length+'</span><h2 id="tourT">'+s.title+'</h2>'+s.body+
+    '<div class="tour-nav">'+(s.last?'<span></span>':'<button type="button" class="tour-skip" data-tour="skip">Skip</button>')+
+    '<div class="tour-dots" aria-hidden="true">'+STEPS.map(function(_,k){return '<i'+(k===i?' class="on"':'')+'></i>'}).join('')+'</div>'+
+    '<button type="button" class="tour-next" data-tour="next">'+(s.last?'Start with Setup':(i===0?'Show me':'Next'))+'</button></div></div>';
+  var n=back.querySelector('.tour-next');if(n)n.focus();
+}
+function start(){
+  if(!document.querySelector('.tab'))return setTimeout(start,100);
+  back=document.createElement('div');back.className='tour-back';
+  back.addEventListener('click',function(e){
+    var b=e.target.closest&&e.target.closest('button[data-tour]');if(!b)return;
+    e.stopPropagation();
+    if(b.dataset.tour==='skip')return done(false);
+    if(STEPS[i].last)return done(true);
+    i++;show();
+  });
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.body.classList.contains('touring'))done(false)});
+  document.body.appendChild(back);document.body.classList.add('touring');show();
+}
+start();
+})();
+</script>
 </body></html>
