@@ -1,8 +1,8 @@
-# Platinum Tracker
+# Mathew's Amex Card
 
 A self-contained phone web app that tracks American Express Platinum credits, perks and news.
 
-**Live app:** https://justinbclose.github.io/platinum-tracker/
+**Live app:** https://justinbclose.github.io/mathews-amex-card/
 
 ## How it works
 
