@@ -63,6 +63,7 @@ p{margin:0}
 .ring circle{fill:none;stroke-width:5}
 .ring-track{stroke:rgba(20,32,46,.14)}
 .ring-fill{stroke:#1B3F94;stroke-linecap:round;transition:stroke-dasharray .6s var(--ease)}
+.ring-fill[data-pct="0"]{stroke-opacity:0}
 .hero.paid{background:
     repeating-linear-gradient(0deg,rgba(255,255,255,.10) 0 1px,rgba(0,0,0,.03) 1px 2px,rgba(255,255,255,0) 2px 3px),
     conic-gradient(from 210deg at 70% 30%,#e9f1ff,#f6e3f4,#e2f6ee,#fdf3d8,#e3ecff,#e9f1ff),
@@ -74,9 +75,9 @@ p{margin:0}
 .updated{font-size:12.5px;color:var(--muted);margin-top:-8px;padding:0 4px}
 .updated span{font-size:12px}
 .group{display:flex;flex-direction:column}
-.group-head{display:flex;justify-content:space-between;align-items:baseline;padding:0 4px 8px}
+.group-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;column-gap:12px;row-gap:2px;padding:0 4px 8px}
 .group-head h2{font-size:21px;display:flex;align-items:center;gap:8px}
-.group-head span{font:500 11px var(--mono);color:var(--muted);letter-spacing:.04em}
+.group-head span{font:500 10.5px var(--mono);color:var(--muted);letter-spacing:.03em;margin-left:auto}
 .g-hot .group-head h2::before,.g-soon .group-head h2::before,.g-later .group-head h2::before,.g-done .group-head h2::before{content:"";width:9px;height:9px;flex:none}
 .g-hot .group-head h2::before{background:var(--hot);transform:rotate(45deg);border-radius:1px}
 .g-soon .group-head h2::before{background:var(--soon);border-radius:50%}
